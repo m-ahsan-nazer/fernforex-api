@@ -6,18 +6,22 @@ const orderController = require('../../controllers/order.controller');
 
 const router = express.Router();
 
+//only managers can delete orders
 router
-  .post('/', validate(orderValidation.createOrder), orderController.createOrder)
-  .get('/', validate(orderValidation.getOrders), orderController.getOrders);
+  .route('/')
+  .delete(auth('manageUsers'), validate(orderValidation.deleteOrder), orderController.deleteOrder);
 
-  // .post(auth('manageUsers'), validate(orderValidation.createOrder), orderController.createOrder)
-  // .get(auth('getUsers'), validate(orderValidation.getOrders), orderController.getOrders);
+router
+  .route('/:userId')
+  .get(auth('getUsers'), validate(orderValidation.getOrders), orderController.getOrders)
+  .post(auth('manageUsers'), validate(orderValidation.createOrder), orderController.createOrder);
 
-// router
-//   .route('/:orderId')
-//   .get(auth('getUsers'), validate(orderValidation.getOrder), orderController.getOrder)
-//   .patch(auth('manageUsers'), validate(orderValidation.updateOrder), orderController.updateOrder)
-//   .delete(auth('manageUsers'), validate(orderValidation.deleteOrder), orderController.deleteOrder);
+//users can only cancel or accept/reject orders
+router
+  .route('/:userId/:orderId')
+  .get(auth('getUsers'), validate(orderValidation.getOrder), orderController.getOrder)
+  .patch(auth('manageUsers'), validate(orderValidation.updateOrder), orderController.updateOrder)
+
 
 module.exports = router;
 

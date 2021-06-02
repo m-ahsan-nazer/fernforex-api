@@ -82,6 +82,7 @@ const deleteOrderById = async (orderId) => {
   if (!order) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Order not found');
   }
+
   await order.remove();
   return order;
 };

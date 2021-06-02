@@ -26,10 +26,10 @@ const orderSchema = mongoose.Schema(
         required: true,
         trim: true,
     },
-    user: {
+    userId: {
         type: mongoose.SchemaTypes.ObjectId,
         ref: 'User',
-        required: false,
+        required: true,
     },
     status: {
         type: Number, //{-1, cancelled, 0: pending, 1: resolved/matched}
@@ -46,7 +46,7 @@ const orderSchema = mongoose.Schema(
                 type: Boolean,
                 required: true,
             },
-            user: {
+            userId: {
                 type: mongoose.SchemaTypes.ObjectId,
                 ref: 'User',
                 required: true
