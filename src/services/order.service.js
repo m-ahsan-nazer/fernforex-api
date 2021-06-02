@@ -1,7 +1,7 @@
+const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const { Order } = require('../models');
 const ApiError = require('../utils/ApiError');
-
 /**
  * Create an order 
  * @param {Object} orderBody
@@ -27,6 +27,37 @@ const createOrder = async (orderBody) => {
 const queryOrders = async (filter, options) => {
   const orders = await Order.paginate(filter, options);
   return orders;
+};
+
+const queryMatchedOrders = async (userId, orderId) => {
+  // const orders = await Order.paginate(filter, options);
+  const order = await Order.findById(orderId);
+  const rate = order.haveAmount/order.wantAmount;
+  const margin = 0.2;
+  const minAmount = order.wantAmount*(1.-margin);
+  const maxAmount = order.wantAmount*(1.+margin);
+  const temp = await Order.find({userId: userId});
+  console.log("temp: ", temp);
+  // const rejectedUsers = await Order.find({
+  //    have: order.have, 
+  //                   haveAmount: order.haveAmount,
+  //                   want: order.want,
+  //                   wantAmount: order.wantAmount, status: {$eq: 1}})
+  //                   .where('details.accepted').equals(false)
+  //                   .select("details.userId -_id");
+  // const ObjectId = mongoose.SchemaTypes.ObjectId;
+  const rejectedOrders= await Order.find(
+    {"details.userId":mongoose.Types.ObjectId(userId)}).select("_id");
+    // {"details.userId":userId}).select("_id"); does not work
+
+  console.log("rejectedOrders: ", rejectedOrders);
+  const matchedOrders = await Order.find({have: order.want, want: order.have, 
+                                    // status: {$ne: -1, $ne: 1}, userId: {"$ne": rejectedUsers}})
+                                    $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],
+                                    "_id": {$nin: rejectedOrders}
+                                  })
+                                   .where('haveAmount').gte(minAmount).lte(maxAmount);
+  return matchedOrders;
 };
 
 /**
@@ -90,6 +121,7 @@ const deleteOrderById = async (orderId) => {
 module.exports = {
   createOrder,
   queryOrders,
+  queryMatchedOrders,
   getOrderById,
   getOrderByUserId,
   updateOrderById,

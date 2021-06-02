@@ -17,6 +17,17 @@ const getOrders = catchAsync(async (req, res) => {
   res.send(result);
 });
 
+const getMatchedOrders = catchAsync(async (req, res) => {
+  // if (req.query.limit > 3){
+    // req.query.limit = 3;
+  // }
+  const filter = pick(req.query, ['have', 'want']);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  // const result = await orderService.queryMatchedOrders(filter, options);
+  const result = await orderService.queryMatchedOrders(req.params.userId, req.params.orderId);
+  res.send(result);
+});
+
 const getOrder = catchAsync(async (req, res) => {
   const order = await orderService.getOrderById(req.params.orderId);
   if (!order) {
@@ -41,4 +52,5 @@ module.exports = {
   getOrder,
   updateOrder,
   deleteOrder,
+  getMatchedOrders,
 };

@@ -20,8 +20,12 @@ router
 router
   .route('/:userId/:orderId')
   .get(auth('getUsers'), validate(orderValidation.getOrder), orderController.getOrder)
-  .patch(auth('manageUsers'), validate(orderValidation.updateOrder), orderController.updateOrder)
+  .patch(auth('manageUsers'), validate(orderValidation.updateOrder), orderController.updateOrder);
 
+router
+  .route('/matches/:userId/:orderId')
+  .post(auth('getUsers'),  orderController.getMatchedOrders)
+  // .post(auth('getUsers'), validate(orderValidation.getOrder), orderController.getMatchedOrders)
 
 module.exports = router;
 
