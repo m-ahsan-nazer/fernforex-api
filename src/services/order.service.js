@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const { Order } = require('../models');
 const ApiError = require('../utils/ApiError');
+
 /**
  * Create an order 
  * @param {Object} orderBody
@@ -24,9 +25,14 @@ const createOrder = async (orderBody) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-const queryOrders = async (filter, options) => {
-  const orders = await Order.paginate(filter, options);
-  return orders;
+// const queryOrders = async (filter, options) => {
+  // const orders = await Order.paginate(filter, options);
+const queryOrders = async (userId) => {
+  const orders = await Order.find({userId})
+  cancelledOrders = orders.filter(order=>order.status == -1);
+  pastOrders = orders.filter(order=>order.status == 1);
+  pendingOrders = orders.filter(order=>order.status == 0);
+  return {orders: {cancelledOrders, pendingOrders, pastOrders}};
 };
 
 const queryMatchedOrders = async (userId, orderId) => {
@@ -46,11 +52,14 @@ const queryMatchedOrders = async (userId, orderId) => {
   //                   .where('details.accepted').equals(false)
   //                   .select("details.userId -_id");
   // const ObjectId = mongoose.SchemaTypes.ObjectId;
-  const rejectedOrders= await Order.find(
+  //rejectedOrders includes both accepted and rejected orders, should be called resolved orders
+  let rejectedOrders= await Order.find(
     {"details.userId":mongoose.Types.ObjectId(userId)}).select("_id");
     // {"details.userId":userId}).select("_id"); does not work
-
-  console.log("rejectedOrders: ", rejectedOrders);
+  console.log("rejectedOrders obj list: ", rejectedOrders);
+  //convert to array of ids
+  rejectedOrders = rejectedOrders.map(e=>e._id);
+  console.log("rejectedOrders list: ", rejectedOrders);
   const matchedOrders = await Order.find({have: order.want, want: order.have, 
                                     // status: {$ne: -1, $ne: 1}, userId: {"$ne": rejectedUsers}})
                                     $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],

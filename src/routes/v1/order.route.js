@@ -13,7 +13,7 @@ router
 
 router
   .route('/:userId')
-  .get(auth('getUsers'), validate(orderValidation.getOrders), orderController.getOrders)
+  .get(auth('manageUsers'), validate(orderValidation.getOrders), orderController.getOrders)
   .post(auth('manageUsers'), validate(orderValidation.createOrder), orderController.createOrder);
 
 //users can only cancel or accept/reject orders
