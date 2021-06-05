@@ -20,13 +20,11 @@ const getOrders = catchAsync(async (req, res) => {
 });
 
 const getMatchedOrders = catchAsync(async (req, res) => {
-  // if (req.query.limit > 3){
-    // req.query.limit = 3;
-  // }
-  const filter = pick(req.query, ['have', 'want']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  // const result = await orderService.queryMatchedOrders(filter, options);
-  const result = await orderService.queryMatchedOrders(req.params.userId, req.params.orderId);
+  /*
+  Currently only pair's up orders, in the future could return multiple 
+  matching orders
+  */
+  const result = await orderService.pairOrder(req.params.userId, req.params.orderId);
   res.send(result);
 });
 

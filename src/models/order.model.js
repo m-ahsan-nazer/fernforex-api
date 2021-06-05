@@ -50,13 +50,34 @@ const orderSchema = mongoose.Schema(
                 type: mongoose.SchemaTypes.ObjectId,
                 ref: 'User',
                 required: true
-            },},
+            },
+            orderId: {
+                type: mongoose.SchemaTypes.ObjectId,
+                ref: 'Order',
+                required: true
+            }
+        },
+    },
+    rejects: {
+            type: [{
+                type: mongoose.SchemaTypes.ObjectId,
+                ref: 'Order'
+            }],
+            default: [],
+            validate: [limitRejections, '{PATH} reached maximum allowed rejections for an order']
     },
   },
   {
     timestamps: true,
   }
 );
+
+function limitRejections(rej){
+    /*
+    could make this a variable in config
+    */
+    return rej.length <= 3;
+}
 
 // add plugin that converts mongoose to json
 orderSchema.plugin(toJSON);

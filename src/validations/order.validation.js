@@ -10,7 +10,15 @@ const createOrder = {
       haveAmount: Joi.number().integer().required(),
       want: Joi.string().required(),
       wantAmount: Joi.number().integer().required(),
-  }),
+      status: Joi.number().integer(),
+      details: {
+        accepted: Joi.boolean(),
+        userId: Joi.string().custom(objectId),
+        orderId: Joi.string().custom(objectId)
+      },
+      // rejects: Joi.string().custom(objectId)
+      rejects: Joi.array().items(Joi.string().custom(objectId)),
+   }),
 };
 
 const getOrders = {
@@ -32,20 +40,24 @@ const getOrder = {
 
 const updateOrder = {
   params: Joi.object().keys({
-    userId: Joi.string().custom(objectId),
+    userId: Joi.string().custom(objectId),//required for authentication
     orderId: Joi.required().custom(objectId),
   }),
   body: Joi.object()
     .keys({
-      have: Joi.string().required(),
-      haveAmount: Joi.number().integer().required(),
-      want: Joi.string().required(),
-      wantAmount: Joi.number().integer().required(),
+      have: Joi.string(),
+      haveAmount: Joi.number().integer(),
+      want: Joi.string(),
+      wantAmount: Joi.number().integer(),
+      // userId: Joi.string().custom(objectId), //deliberately leaving out userId, which should not be updated once assigned
       status: Joi.number().integer(),
       details: {
         accepted: Joi.boolean(),
-        userId: Joi.string().custom(objectId)
-      }
+        userId: Joi.string().custom(objectId),
+        orderId: Joi.string().custom(objectId)
+      },
+      // rejects: Joi.string().custom(objectId)
+      rejects: Joi.array().items(Joi.string().custom(objectId)),
     })
     .min(1),
 };

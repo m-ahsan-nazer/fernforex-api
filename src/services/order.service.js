@@ -35,38 +35,54 @@ const queryOrders = async (userId) => {
   return {orders: {cancelledOrders, pendingOrders, pastOrders}};
 };
 
-const queryMatchedOrders = async (userId, orderId) => {
-  // const orders = await Order.paginate(filter, options);
-  const order = await Order.findById(orderId);
+const pairOrder = async (userId, orderId) => {
+  //  find user's order with id=orderId
+  //repeating as order is populated with ref model values
+  const rejects = await Order.findById(orderId).select('rejects');
+  const order = await Order.findById(orderId)
+                      .select('have haveAmount want wantAmount status rejects')
+                      .populate({path: "rejects.orderId", select: 'have haveAmount want wantAmount'});
   const rate = order.haveAmount/order.wantAmount;
   const margin = 0.2;
   const minAmount = order.wantAmount*(1.-margin);
   const maxAmount = order.wantAmount*(1.+margin);
-  const temp = await Order.find({userId: userId});
-  console.log("temp: ", temp);
-  // const rejectedUsers = await Order.find({
-  //    have: order.have, 
-  //                   haveAmount: order.haveAmount,
-  //                   want: order.want,
-  //                   wantAmount: order.wantAmount, status: {$eq: 1}})
-  //                   .where('details.accepted').equals(false)
-  //                   .select("details.userId -_id");
-  // const ObjectId = mongoose.SchemaTypes.ObjectId;
-  //rejectedOrders includes both accepted and rejected orders, should be called resolved orders
-  let rejectedOrders= await Order.find(
-    {"details.userId":mongoose.Types.ObjectId(userId)}).select("_id");
-    // {"details.userId":userId}).select("_id"); does not work
-  console.log("rejectedOrders obj list: ", rejectedOrders);
-  //convert to array of ids
-  rejectedOrders = rejectedOrders.map(e=>e._id);
-  console.log("rejectedOrders list: ", rejectedOrders);
-  const matchedOrders = await Order.find({have: order.want, want: order.have, 
-                                    // status: {$ne: -1, $ne: 1}, userId: {"$ne": rejectedUsers}})
-                                    $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],
-                                    "_id": {$nin: rejectedOrders}
-                                  })
-                                   .where('haveAmount').gte(minAmount).lte(maxAmount);
-  return matchedOrders;
+  //Now match candidates exclude order.rejects and meet other requirements
+  const matchedOrder = await Order.findOne({have: order.want, want: order.have, 
+                                          $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],
+                                          rejects: {$nin: rejects}
+                                        })
+                                        .where('haveAmount').gte(minAmount).lte(maxAmount)
+                                        .select('have haveAmount want wantAmount userId')
+                                        .populate({path: "userId", select: 'name email'});
+  // matchedOrder.populate({path: "userId", select: 'name email'})
+  // const temp = await Order.find({userId: userId});
+  // console.log("temp: ", temp);
+  // // const rejectedUsers = await Order.find({
+  // //    have: order.have, 
+  // //                   haveAmount: order.haveAmount,
+  // //                   want: order.want,
+  // //                   wantAmount: order.wantAmount, status: {$eq: 1}})
+  // //                   .where('details.accepted').equals(false)
+  // //                   .select("details.userId -_id");
+  // // const ObjectId = mongoose.SchemaTypes.ObjectId;
+  // //rejectedOrders includes both accepted and rejected orders, should be called resolved orders
+  // let rejectedOrders= await Order.find(
+  //   {"details.userId":mongoose.Types.ObjectId(userId)}).select("_id");
+  //   // {"details.userId":userId}).select("_id"); does not work
+  // console.log("rejectedOrders obj list: ", rejectedOrders);
+  // //convert to array of ids
+  // rejectedOrders = rejectedOrders.map(e=>e._id);
+  // console.log("rejectedOrders list: ", rejectedOrders);
+  // const matchedOrders = await Order.find({have: order.want, want: order.have, 
+  //                                   // status: {$ne: -1, $ne: 1}, userId: {"$ne": rejectedUsers}})
+  //                                   $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],
+  //                                   "_id": {$nin: rejectedOrders}
+  //                                 })
+  //                                  .where('haveAmount').gte(minAmount).lte(maxAmount);
+
+
+  // return matchedOrder;
+  return {order: order, matchedOrder: matchedOrder};
 };
 
 /**
@@ -102,11 +118,18 @@ const updateOrderById = async (orderId, updateBody) => {
     // throw new ApiError(httpStatus.BAD_REQUEST, 'Can only change pending a order');
 //   }
   if (order.status == -1){
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Can not update a cancelled order');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Can not update a cancelled order.');
   }
   if (order.status == 1){
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Can not update a rejected/accepted order');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Can not update an already accepted order.');
   }
+  //First push all the rejects
+  if (updateBody.hasOwnProperty('rejects')){
+    order.rejects.push.apply(order.rejects, updateBody.rejects);
+    //Second remove the rejects from the body
+    delete updateBody.rejects;
+  }
+  //Now assign all of the remaining keys
   Object.assign(order, updateBody);
   await order.save();
   return order;
@@ -130,7 +153,7 @@ const deleteOrderById = async (orderId) => {
 module.exports = {
   createOrder,
   queryOrders,
-  queryMatchedOrders,
+  pairOrder,
   getOrderById,
   getOrderByUserId,
   updateOrderById,
