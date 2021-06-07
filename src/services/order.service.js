@@ -38,7 +38,7 @@ const queryOrders = async (userId) => {
 const pairOrder = async (userId, orderId) => {
   //  find user's order with id=orderId
   //repeating as order is populated with ref model values
-  const rejects = await Order.findById(orderId).select('rejects');
+  const rejected = await Order.findById(orderId).select('rejects');
   const order = await Order.findById(orderId)
                       .select('have haveAmount want wantAmount status rejects')
                       .populate({path: "rejects.orderId", select: 'have haveAmount want wantAmount'});
@@ -47,42 +47,21 @@ const pairOrder = async (userId, orderId) => {
   const minAmount = order.wantAmount*(1.-margin);
   const maxAmount = order.wantAmount*(1.+margin);
   //Now match candidates exclude order.rejects and meet other requirements
-  const matchedOrder = await Order.findOne({have: order.want, want: order.have, 
-                                          $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],
-                                          rejects: {$nin: rejects}
-                                        })
-                                        .where('haveAmount').gte(minAmount).lte(maxAmount)
-                                        .select('have haveAmount want wantAmount userId')
-                                        .populate({path: "userId", select: 'name email'});
-  // matchedOrder.populate({path: "userId", select: 'name email'})
-  // const temp = await Order.find({userId: userId});
-  // console.log("temp: ", temp);
-  // // const rejectedUsers = await Order.find({
-  // //    have: order.have, 
-  // //                   haveAmount: order.haveAmount,
-  // //                   want: order.want,
-  // //                   wantAmount: order.wantAmount, status: {$eq: 1}})
-  // //                   .where('details.accepted').equals(false)
-  // //                   .select("details.userId -_id");
-  // // const ObjectId = mongoose.SchemaTypes.ObjectId;
-  // //rejectedOrders includes both accepted and rejected orders, should be called resolved orders
-  // let rejectedOrders= await Order.find(
-  //   {"details.userId":mongoose.Types.ObjectId(userId)}).select("_id");
-  //   // {"details.userId":userId}).select("_id"); does not work
-  // console.log("rejectedOrders obj list: ", rejectedOrders);
-  // //convert to array of ids
-  // rejectedOrders = rejectedOrders.map(e=>e._id);
-  // console.log("rejectedOrders list: ", rejectedOrders);
-  // const matchedOrders = await Order.find({have: order.want, want: order.have, 
-  //                                   // status: {$ne: -1, $ne: 1}, userId: {"$ne": rejectedUsers}})
-  //                                   $and: [{status: {$ne: -1}}, {status: {$ne: 1}}],
-  //                                   "_id": {$nin: rejectedOrders}
-  //                                 })
-  //                                  .where('haveAmount').gte(minAmount).lte(maxAmount);
-
-
-  // return matchedOrder;
-  return {order: order, matchedOrder: matchedOrder};
+  const matchedOrder = await Order.findOne({
+    // userId: {$ne: mongoose.SchemaTypes.ObjectId(userId)}, //unlike for $nin this does not work
+    userId: {$ne: userId}, //ignore the orders my the user themselves
+    have: order.want, //should have what I want
+    want: order.have, 
+    $and: [{status: {$ne: -1}}, {status: {$ne: 1}}], //remove cancelled and accepted orders from search
+    rejects: {$nin: rejected.rejects.map(rej=>{ //ignore past rejects
+      return mongoose.SchemaTypes.ObjectId(rej)
+    })}
+   })
+   .where('haveAmount').gte(minAmount).lte(maxAmount)
+   .select('have haveAmount want wantAmount userId')
+   .populate({path: "userId", select: 'name email'});
+  
+  return {order: order, matchedOrder: matchedOrder, rejects: rejected.rejects};
 };
 
 /**
