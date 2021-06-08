@@ -2,9 +2,17 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { orderService } = require('../services');
+const { orderService, userService } = require('../services');
 
 const createOrder = catchAsync(async (req, res) => {
+  const user = await userService.getUserById(req.params.userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Can only create order for existing users!');
+  }
+  if (!user.isEmailVerified){
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Can not create order. Email is not verified!');
+  }
+
   req.body.userId = req.params.userId;
   const order = await orderService.createOrder(req.body);
   res.status(httpStatus.CREATED).send(order);
