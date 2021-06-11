@@ -2,6 +2,17 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { authService, userService, tokenService, emailService } = require('../services');
 
+//sendContactFormMessageToEmail
+//const sendContactFormMessageToEmail = async ( email, message, messageTitle, name ) => {
+const contact = catchAsync(async (req, res) => {
+  if ('lastName' in req){
+    return res.status(httpStatus.BAD_REQUEST).send("No can do!");
+  }
+  await emailService.sendContactFormMessageToEmail(
+    req.body.email, req.body.message, req.body.messageTitle, req.body.name);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
   const tokens = await tokenService.generateAuthTokens(user);
@@ -48,6 +59,7 @@ const verifyEmail = catchAsync(async (req, res) => {
 });
 
 module.exports = {
+  contact,
   register,
   login,
   logout,

@@ -25,6 +25,24 @@ const sendEmail = async (to, subject, text) => {
 };
 
 /**
+ * Send contact form message to email
+ * @param {string} to
+ * @param {string} name 
+ * @param {string} 
+ * @param {string} name 
+ * @param {string} name 
+ * @returns {Promise}
+ */
+const sendContactFormMessageToEmail = async ( email, message, messageTitle, name ) => {
+  const text = `<b>FernForex Contact Form</b>,
+<p>  <b>Name</b>: ${name}</p>
+<p>  <b>Email</b>: ${email}</p>
+<p> <b>Message</b>: </p>
+<p>${message}</p>`;
+  await sendEmail(config.email.to, messageTitle, text);
+};
+
+/**
  * Send reset password email
  * @param {string} to
  * @param {string} token
@@ -32,7 +50,7 @@ const sendEmail = async (to, subject, text) => {
  */
 const sendResetPasswordEmail = async (to, token) => {
   const subject = 'Reset password';
-  const resetPasswordUrl = `www.fernforex.co.nz/reset-password?token=${token}`;
+  const resetPasswordUrl = `${config.fe.url}/reset-password?token=${token}`;
   const text = `<b>Kia ora</b>,
 <p>To reset your password, click on this link: <a href=${resetPasswordUrl}>reset FernForex 
 account password</a>.</p><p>If you did not request any password resets, then ignore this email.</p>`;
@@ -47,7 +65,7 @@ account password</a>.</p><p>If you did not request any password resets, then ign
  */
 const sendVerificationEmail = async (to, token) => {
   const subject = 'Email Verification';
-  const verificationEmailUrl = `www.fernforex.co.nz/verify-email?token=${token}`;
+  const verificationEmailUrl = `${config.fe.url}/verify-email?token=${token}`;
   const text = `<b>Kia ora</b>,
 <p>To verify your email, click on this link: <a href=${verificationEmailUrl}>verify FernForex 
 account</a>.</p><p>If you did not create an account, then ignore this email.</p>`;
@@ -57,6 +75,7 @@ account</a>.</p><p>If you did not create an account, then ignore this email.</p>
 
 module.exports = {
   transport,
+  sendContactFormMessageToEmail,
   sendEmail,
   sendResetPasswordEmail,
   sendVerificationEmail,

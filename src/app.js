@@ -39,7 +39,19 @@ app.use(compression());
 
 // enable cors
 app.use(cors());
-app.options('*', cors());
+//let's put some restrictions
+let whitelist = ['http://localhost:3000', '/\.fernforex\.co\.nz$/', '/\.fernforex-fe2\.ts\.r\.appspot\.com$/'];
+//let corsOptions = {
+//  origin: function (origin, callback) {
+//    if (whitelist.indexOf(origin) !== -1) {
+//      callback(null, true)
+//    } else {
+//      callback(new Error('Not allowed by CORS'))
+//    }
+//  }
+//}
+//In app.options('*==all routes', cors(corOptions)==enable cors with options as set)
+app.options('*', cors(whitelist));
 
 // jwt authentication
 app.use(passport.initialize());
