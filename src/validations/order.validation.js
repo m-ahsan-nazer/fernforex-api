@@ -1,24 +1,24 @@
 const Joi = require('joi');
-const { password, objectId } = require('./custom.validation');
+const { objectId } = require('./custom.validation');
 
 const createOrder = {
   params: Joi.object().keys({
     userId: Joi.string().custom(objectId),
   }),
   body: Joi.object().keys({
-      have: Joi.string().required(),
-      haveAmount: Joi.number().integer().required(),
-      want: Joi.string().required(),
-      wantAmount: Joi.number().integer().required(),
-      status: Joi.number().integer(),
-      details: {
-        accepted: Joi.boolean(),
-        userId: Joi.string().custom(objectId),
-        orderId: Joi.string().custom(objectId)
-      },
-      // rejects: Joi.string().custom(objectId)
-      rejects: Joi.array().items(Joi.string().custom(objectId)),
-   }),
+    have: Joi.string().required(),
+    haveAmount: Joi.number().integer().required(),
+    want: Joi.string().required(),
+    wantAmount: Joi.number().integer().required(),
+    status: Joi.number().integer(),
+    details: {
+      accepted: Joi.boolean(),
+      userId: Joi.string().custom(objectId),
+      orderId: Joi.string().custom(objectId),
+    },
+    // rejects: Joi.string().custom(objectId)
+    rejects: Joi.array().items(Joi.string().custom(objectId)),
+  }),
 };
 
 const getOrders = {
@@ -40,7 +40,7 @@ const getOrder = {
 
 const updateOrder = {
   params: Joi.object().keys({
-    userId: Joi.string().custom(objectId),//required for authentication
+    userId: Joi.string().custom(objectId), //required for authentication
     orderId: Joi.required().custom(objectId),
   }),
   body: Joi.object()
@@ -54,7 +54,7 @@ const updateOrder = {
       details: {
         accepted: Joi.boolean(),
         userId: Joi.string().custom(objectId),
-        orderId: Joi.string().custom(objectId)
+        orderId: Joi.string().custom(objectId),
       },
       // rejects: Joi.string().custom(objectId)
       rejects: Joi.array().items(Joi.string().custom(objectId)),

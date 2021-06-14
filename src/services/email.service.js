@@ -26,14 +26,13 @@ const sendEmail = async (to, subject, text) => {
 
 /**
  * Send contact form message to email
- * @param {string} to
- * @param {string} name 
- * @param {string} 
- * @param {string} name 
- * @param {string} name 
+ * @param {string} email
+ * @param {string} message
+ * @param {string} messageTitle
+ * @param {string} name
  * @returns {Promise}
  */
-const sendContactFormMessageToEmail = async ( email, message, messageTitle, name ) => {
+const sendContactFormMessageToEmail = async (email, message, messageTitle, name) => {
   const text = `<b>FernForex Contact Form</b>,
 <p>  <b>Name</b>: ${name}</p>
 <p>  <b>Email</b>: ${email}</p>
