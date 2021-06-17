@@ -40,7 +40,7 @@ const getOrder = {
 
 const updateOrder = {
   params: Joi.object().keys({
-    userId: Joi.string().custom(objectId), //required for authentication
+    userId: Joi.string().custom(objectId), // required for authentication
     orderId: Joi.required().custom(objectId),
   }),
   body: Joi.object()

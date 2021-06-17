@@ -34,6 +34,33 @@ const admin = {
   isEmailVerified: false,
 };
 
+const userThree = {
+  _id: mongoose.Types.ObjectId(),
+  name: faker.name.findName(),
+  email: faker.internet.email().toLowerCase(),
+  password,
+  role: 'user',
+  isEmailVerified: true,
+};
+
+const userFour = {
+  _id: mongoose.Types.ObjectId(),
+  name: faker.name.findName(),
+  email: faker.internet.email().toLowerCase(),
+  password,
+  role: 'user',
+  isEmailVerified: true,
+};
+
+const admin2 = {
+  _id: mongoose.Types.ObjectId(),
+  name: faker.name.findName(),
+  email: faker.internet.email().toLowerCase(),
+  password,
+  role: 'admin',
+  isEmailVerified: true,
+};
+
 const insertUsers = async (users) => {
   await User.insertMany(users.map((user) => ({ ...user, password: hashedPassword })));
 };
@@ -42,5 +69,8 @@ module.exports = {
   userOne,
   userTwo,
   admin,
+  userThree,
+  userFour,
+  admin2,
   insertUsers,
 };

@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const { Order } = require('../models');
+const { getUserById } = require("./user.service");
 const ApiError = require('../utils/ApiError');
 
 /**
@@ -51,14 +53,18 @@ const pairOrder = async (userId, orderId) => {
     userId: { $ne: userId }, // ignore the orders by the user themselves
     have: order.want, // should have what I want
     want: order.have,
-    $and: [{ status: { $ne: -1 } }, { status: { $ne: 1 } }], // remove cancelled and accepted orders from search
+    // $and: [{ status: { $ne: -1 } }, { status: { $ne: 1 } }], // remove cancelled and accepted orders from search
+    // eslint-disable-next-line prettier/prettier
+    $or: [{ status: { $eq: 0 } },// retrieve pending orders or orders that have accepted current order
+      { $and: [{ status: { $eq: 1 } }, { 'details.orderId': { $eq: mongoose.Types.ObjectId(orderId) } }] },
+    ], // mongoose.Types.ObjectId cast is required for sub-document.
     _id: {
-      $nin: rejected.rejects,
+      $nin: rejected.rejects, // exclude orders that orderId has rejected
     },
+    rejects: { $nin: [orderId] }, // exclude orders that have rejected orderId
   })
-    .where('haveAmount')
-    .gte(minAmount)
-    .lte(maxAmount)
+    // eslint-disable-next-line prettier/prettier
+    .where('haveAmount').gte(minAmount).lte(maxAmount) // matched orders should be within 20% range
     .select('have haveAmount want wantAmount userId')
     .populate({ path: 'userId', select: 'name email' });
 
@@ -89,14 +95,22 @@ const getOrderByUserId = async (userId) => {
  * @param {Object} updateBody
  * @returns {Promise<Order>}
  */
-const updateOrderById = async (orderId, updateBody) => {
-  const order = await getOrderById(orderId);
+const updateOrderById = async (userId, orderId, updateBody) => {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  let order;
+  if (user.role === 'user') {
+    order = await Order.findById(orderId).where('userId').eq(userId);
+  } else if (user.role === 'admin') {
+    order = await Order.findById(orderId).where('userId');
+  }
   if (!order) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Order not found');
   }
-  //   if ((await Order.isOrderPending(orderId))) {
-  // throw new ApiError(httpStatus.BAD_REQUEST, 'Can only change pending a order');
-  //   }
+
   if (order.status === -1) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Can not update a cancelled order.');
   }

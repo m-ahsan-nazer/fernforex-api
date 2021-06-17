@@ -9,7 +9,7 @@ const createOrder = catchAsync(async (req, res) => {
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Can only create order for existing users!');
   }
-  if (!user.isEmailVerified){
+  if (!user.isEmailVerified) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Can not create order. Email is not verified!');
   }
 
@@ -23,6 +23,11 @@ const getOrders = catchAsync(async (req, res) => {
   // const filter = pick(req.query, ['name', 'role']);
   // const options = pick(req.query, ['sortBy', 'limit', 'page']);
   // const result = await orderService.queryOrders(filter, options);
+  const user = await userService.getUserById(req.params.userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
   const result = await orderService.queryOrders(req.params.userId);
   res.send(result);
 });
@@ -32,6 +37,15 @@ const getMatchedOrders = catchAsync(async (req, res) => {
   Currently only pair's up orders, in the future could return multiple 
   matching orders
   */
+  const user = await userService.getUserById(req.params.userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  const order = await orderService.getOrderById(req.params.orderId);
+  if (!order) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Order not found');
+  }
+
   const result = await orderService.pairOrder(req.params.userId, req.params.orderId);
   res.send(result);
 });
@@ -45,7 +59,7 @@ const getOrder = catchAsync(async (req, res) => {
 });
 
 const updateOrder = catchAsync(async (req, res) => {
-  const order = await orderService.updateOrderById(req.params.orderId, req.body);
+  const order = await orderService.updateOrderById(req.params.userId, req.params.orderId, req.body);
   res.send(order);
 });
 
