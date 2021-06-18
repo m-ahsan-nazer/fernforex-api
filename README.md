@@ -1,44 +1,17 @@
-# RESTful API Node Server Boilerplate
+# RESTful peer-to-peer currency exchange API for FernForex project
 
-[![Build Status](https://travis-ci.org/hagopj13/node-express-boilerplate.svg?branch=master)](https://travis-ci.org/hagopj13/node-express-boilerplate)
-[![Coverage Status](https://coveralls.io/repos/github/hagopj13/node-express-boilerplate/badge.svg?branch=master)](https://coveralls.io/github/hagopj13/node-express-boilerplate?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2ab03f5d62a1404f87a659afe8d6d5de)](https://www.codacy.com/manual/hagopj13/node-express-mongoose-boilerplate?utm_source=github.com&utm_medium=referral&utm_content=hagopj13/node-express-boilerplate&utm_campaign=Badge_Grade)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+This API starts with [Node-Express-Mongoose](https://github.com/hagopj13/node-express-boilerplate) boilerplate and adds the **Order** endpoints. The Order routes 
+creates new orders and most importantly matches orders for two users. The matches are currently paired that is only a single match is found and returned but this feature can be changed in the future to return multiple matches for a single order. Some tests are also performed on the order routes.
 
-A boilerplate/starter project for quickly building RESTful APIs using Node.js, Express, and Mongoose.
+This is an RESTful API using Node.js, Express, and Mongoose. The app inherits features, such as authentication using JWT, request validation, unit and integration tests, continuous integration, docker support, API documentation, pagination, etc from the original repo.
 
-By running a single command, you will get a production-ready Node.js app installed and fully configured on your machine. The app comes with many built-in features, such as authentication using JWT, request validation, unit and integration tests, continuous integration, docker support, API documentation, pagination, etc. For more details, check the features list below.
 
-## Quick Start
-
-To create a project, simply run:
-
-```bash
-npx create-nodejs-express-app <project-name>
-```
-
-Or
-
-```bash
-npm init nodejs-express-app <project-name>
-```
-
-## Manual Installation
-
-If you would still prefer to do the installation manually, follow these steps:
-
-Clone the repo:
-
-```bash
-git clone --depth 1 https://github.com/hagopj13/node-express-boilerplate.git
-cd node-express-boilerplate
-npx rimraf ./.git
-```
+## Installation
 
 Install the dependencies:
 
 ```bash
-yarn install
+npm install
 ```
 
 Set the environment variables:
@@ -48,22 +21,6 @@ cp .env.example .env
 
 # open .env and modify the environment variables (if needed)
 ```
-
-## Table of Contents
-
-- [Features](#features)
-- [Commands](#commands)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [API Documentation](#api-documentation)
-- [Error Handling](#error-handling)
-- [Validation](#validation)
-- [Authentication](#authentication)
-- [Authorization](#authorization)
-- [Logging](#logging)
-- [Custom Mongoose Plugins](#custom-mongoose-plugins)
-- [Linting](#linting)
-- [Contributing](#contributing)
 
 ## Features
 
@@ -94,56 +51,21 @@ cp .env.example .env
 Running locally:
 
 ```bash
-yarn dev
-```
-
-Running in production:
-
-```bash
-yarn start
+npm run dev
 ```
 
 Testing:
 
 ```bash
 # run all tests
-yarn test
+npm run test
 
 # run all tests in watch mode
-yarn test:watch
+npm run test:watch
 
-# run test coverage
-yarn coverage
 ```
 
-Docker:
 
-```bash
-# run docker container in development mode
-yarn docker:dev
-
-# run docker container in production mode
-yarn docker:prod
-
-# run all tests in a docker container
-yarn docker:test
-```
-
-Linting:
-
-```bash
-# run ESLint
-yarn lint
-
-# fix ESLint errors
-yarn lint:fix
-
-# run prettier
-yarn prettier
-
-# fix prettier errors
-yarn prettier:fix
-```
 
 ## Environment Variables
 
@@ -154,7 +76,7 @@ The environment variables can be found and modified in the `.env` file. They com
 PORT=3000
 
 # URL of the Mongo DB
-MONGODB_URL=mongodb://127.0.0.1:27017/node-boilerplate
+MONGODB_URL=mongodb://127.0.0.1:27017/fernforex
 
 # JWT
 # JWT secret key
@@ -213,6 +135,13 @@ List of available routes:
 `GET /v1/users/:userId` - get user\
 `PATCH /v1/users/:userId` - update user\
 `DELETE /v1/users/:userId` - delete user
+
+**Order routes**:\
+`GET /v1/users/orders/:userId` - get all orders by userId\
+`POST /v1/users/orders/:userId` - create a new order for userId\
+`GET /v1/users/orders/:userId/:orderId` - get order by user\
+`PATCH /v1/users/orders/:userId/:orderId` - update order by user\
+`POST /v1/users/orders/matches/:userId/:orderId` - find a match for order by user
 
 ## Error Handling
 
@@ -347,94 +276,17 @@ This app uses pm2 in production mode, which is already configured to store the l
 
 Note: API request information (request url, response code, timestamp, etc.) are also automatically logged (using [morgan](https://github.com/expressjs/morgan)).
 
-## Custom Mongoose Plugins
 
-The app also contains 2 custom mongoose plugins that you can attach to any mongoose model schema. You can find the plugins in `src/models/plugins`.
-
-```javascript
-const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
-
-const userSchema = mongoose.Schema(
-  {
-    /* schema definition here */
-  },
-  { timestamps: true }
-);
-
-userSchema.plugin(toJSON);
-userSchema.plugin(paginate);
-
-const User = mongoose.model('User', userSchema);
 ```
 
-### toJSON
+### Custom Mongoose Plugin toJSON
 
 The toJSON plugin applies the following changes in the toJSON transform call:
 
 - removes \_\_v, createdAt, updatedAt, and any schema path that has private: true
 - replaces \_id with id
 
-### paginate
 
-The paginate plugin adds the `paginate` static method to the mongoose schema.
-
-Adding this plugin to the `User` model schema will allow you to do the following:
-
-```javascript
-const queryUsers = async (filter, options) => {
-  const users = await User.paginate(filter, options);
-  return users;
-};
-```
-
-The `filter` param is a regular mongo filter.
-
-The `options` param can have the following (optional) fields:
-
-```javascript
-const options = {
-  sortBy: 'name:desc', // sort order
-  limit: 5, // maximum results per page
-  page: 2, // page number
-};
-```
-
-The plugin also supports sorting by multiple criteria (separated by a comma): `sortBy: name:desc,role:asc`
-
-The `paginate` method returns a Promise, which fulfills with an object having the following properties:
-
-```json
-{
-  "results": [],
-  "page": 2,
-  "limit": 5,
-  "totalPages": 10,
-  "totalResults": 48
-}
-```
-
-## Linting
-
-Linting is done using [ESLint](https://eslint.org/) and [Prettier](https://prettier.io).
-
-In this app, ESLint is configured to follow the [Airbnb JavaScript style guide](https://github.com/airbnb/javascript/tree/master/packages/eslint-config-airbnb-base) with some modifications. It also extends [eslint-config-prettier](https://github.com/prettier/eslint-config-prettier) to turn off all rules that are unnecessary or might conflict with Prettier.
-
-To modify the ESLint configuration, update the `.eslintrc.json` file. To modify the Prettier configuration, update the `.prettierrc.json` file.
-
-To prevent a certain file or directory from being linted, add it to `.eslintignore` and `.prettierignore`.
-
-To maintain a consistent coding style across different IDEs, the project contains `.editorconfig`
-
-## Contributing
-
-Contributions are more than welcome! Please check out the [contributing guide](CONTRIBUTING.md).
-
-## Inspirations
-
-- [danielfsousa/express-rest-es2017-boilerplate](https://github.com/danielfsousa/express-rest-es2017-boilerplate)
-- [madhums/node-express-mongoose](https://github.com/madhums/node-express-mongoose)
-- [kunalkapadia/express-mongoose-es6-rest-api](https://github.com/kunalkapadia/express-mongoose-es6-rest-api)
 
 ## License
 
