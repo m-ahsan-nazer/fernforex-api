@@ -144,7 +144,7 @@ List of available routes:
 `DELETE /v1/users/:userId` - delete user
 
 **Order routes**:\
-`DELETE /v1/users/orders/:orderId` - delete order
+`DELETE /v1/users/orders/:orderId` - delete order\
 `GET /v1/users/orders/:userId` - get all orders by userId\
 `POST /v1/users/orders/:userId` - create a new order for userId\
 `GET /v1/users/orders/:userId/:orderId` - get order by user\
