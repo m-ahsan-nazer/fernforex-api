@@ -19,6 +19,36 @@ components:
         name: fake name
         role: user
 
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        have:
+          type: string
+        haveAmount:
+          type: number
+        want:
+          type: string
+        wantAmount:
+          type: number
+        status:
+          type: number
+          enum: [-1, 0, 1]
+        rejects:
+          type: array
+          items:
+            type: string
+      example:
+        id: 4ebac534954b54139806c112
+        have: nzd
+        haveAmount: 100
+        want: aud
+        wantAmount: 95
+        rejects: []
+        status: 0
+        userId: 5ebac534954b54139806c112
+
     Token:
       type: object
       properties:
