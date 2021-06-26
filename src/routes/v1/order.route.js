@@ -9,7 +9,7 @@ const router = express.Router();
 // only managers can delete orders
 // eslint-disable-next-line prettier/prettier
 router
-  .route('/')
+  .route('/:orderId')
   .delete(auth('manageUsers'), validate(orderValidation.deleteOrder), orderController.deleteOrder);
 
 router
@@ -223,7 +223,11 @@ module.exports = router;
  *         $ref: '#/components/responses/Forbidden'
  *       "404":
  *         $ref: '#/components/responses/NotFound'
- *
+ */
+
+/**
+ * @swagger
+ * /users/orders/{orderId}:
  *   delete:
  *     summary: Delete an order
  *     description: Only admins can delete an order. Users can only cancel their order.
@@ -231,12 +235,6 @@ module.exports = router;
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: User id
  *       - in: path
  *         name: orderId
  *         required: true
