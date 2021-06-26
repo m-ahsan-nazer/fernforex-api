@@ -1,7 +1,14 @@
 # RESTful peer-to-peer currency exchange API for FernForex project
 
 This API starts with [Node-Express-Mongoose](https://github.com/hagopj13/node-express-boilerplate) boilerplate and adds the **Order** endpoints. The Order routes 
-creates new orders and most importantly matches orders for two users. The matches are currently paired that is only a single match is found and returned but this feature can be changed in the future to return multiple matches for a single order. Some tests are also performed on the order routes.
+creates new orders and most importantly matches orders for two users. The matches are currently paired that is only a single match is found and returned but this feature can be changed in the future to return multiple matches for a single order. Some tests are also performed on the order routes and current implementation 
+may not match exactly as stated in documentation but this is temporary. 
+
+The changes for the order routes can obtained by typing
+```bash
+git log --author=m.ahsan.nazer@gmail.com
+```
+This works because at present I am the only person working on the FernForex API.
 
 This is an RESTful API using Node.js, Express, and Mongoose. The app inherits features, such as authentication using JWT, request validation, unit and integration tests, continuous integration, docker support, API documentation, pagination, etc from the original repo.
 
@@ -137,6 +144,7 @@ List of available routes:
 `DELETE /v1/users/:userId` - delete user
 
 **Order routes**:\
+`DELETE /v1/users/orders/:orderId` - delete order
 `GET /v1/users/orders/:userId` - get all orders by userId\
 `POST /v1/users/orders/:userId` - create a new order for userId\
 `GET /v1/users/orders/:userId/:orderId` - get order by user\
